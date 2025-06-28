@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto Pedagógico Agrinho - Festejando a Conexão Campo-Cidade</title>
+    
+    <!-- CORREÇÃO: Removida a barra inicial para tornar os caminhos relativos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        /* Estilo customizado para o corpo e a fonte */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Animação suave para a transição de conteúdo */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .submenu {
+            display: none;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            max-height: 0;
+        }
+
+        .submenu.open {
+            display: block;
+            max-height: 500px; /* Altura suficiente para os itens */
+        }
+        
+        /* Estilos para Modal dos Jogos */
+        .game-modal {
+            display: none; /* Escondido por padrão */
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .game-modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 1.5rem; /* Padding ajustado para mobile */
+            border-radius: 0.75rem;
+            width: 100%;
+            max-width: 480px;
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            animation: slideIn 0.4s ease-out;
+        }
+        .close-modal-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .close-modal-btn:hover {
+            color: #333;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        #memory-game-area {
+            overflow-y: auto; /* Permite scroll se o conteúdo for maior que o espaço */
+            padding-right: 5px; /* Evita que a scrollbar cole no conteúdo */
+        }
+
+        /* Estilos para o Jogo da Memória */
+        .memory-card {
+            background-color: #4ade80; /* bg-green-400 */
+            aspect-ratio: 1 / 1;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1rem, 8vw, 2rem);
+            user-select: none;
+        }
+        .memory-card.flipped, .memory-card.matched {
+            transform: rotateY(180deg);
+            background-color: #dcfce7; /* bg-green-100 */
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+    </style>
+</head>
+<body class="bg-green-50 text-gray-800">
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar/Menu Lateral -->
+        <aside id="sidebar" class="bg-white w-64 p-6 shadow-lg fixed lg:relative h-full -translate-x-full lg:translate-x-0 transition-transform duration-300 z-40">
+            <div class="text-center mb-10">
+                <h1 class="text-xl font-bold text-green-800">Projeto Agrinho</h1>
+                <p class="text-sm text-gray-500">Conexão Campo-Cidade</p>
+            </div>
+            <nav id="main-nav">
+                <ul class="space-y-2">
+                    <li><a href="#" class="nav-link active-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-green-100 hover:text-green-800 transition-colors" data-target="inicio"><i data-feather="home" class="w-5 h-5 mr-3"></i> Início</a></li>
+                    <li>
+                        <a href="#" id="turmas-toggle" class="flex items-center justify-between w-full p-3 rounded-lg text-gray-700 hover:bg-green-100 hover:text-green-800 transition-colors">
+                            <span class="flex items-center"><i data-feather="users" class="w-5 h-5 mr-3"></i> Turmas</span><i data-feather="chevron-down" class="w-4 h-4 transition-transform"></i>
+                        </a>
+                        <ul id="turmas-submenu" class="submenu mt-1 ml-6 space-y-1">
+                            <li><a href="#" class="nav-link block p-2 rounded-md hover:bg-green-100 text-sm" data-target="turma-1">1º Ano</a></li>
+                            <li><a href="#" class="nav-link block p-2 rounded-md hover:bg-green-100 text-sm" data-target="turma-2">2º Ano</a></li>
+                            <li><a href="#" class="nav-link block p-2 rounded-md hover:bg-green-100 text-sm" data-target="turma-3">3º Ano</a></li>
+                            <li><a href="#" class="nav-link block p-2 rounded-md hover:bg-green-100 text-sm" data-target="turma-4">4º Ano</a></li>
+                            <li><a href="#" class="nav-link block p-2 rounded-md hover:bg-green-100 text-sm" data-target="turma-5">5º Ano</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-green-100 hover:text-green-800 transition-colors" data-target="visitas"><i data-feather="camera" class="w-5 h-5 mr-3"></i> Visitas</a></li>
+                    <li><a href="#" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-green-100 hover:text-green-800 transition-colors" data-target="jogos"><i data-feather="play-circle" class="w-5 h-5 mr-3"></i> Jogos</a></li>
+                    <li><a href="#" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-green-100 hover:text-green-800 transition-colors" data-target="timeline"><i data-feather="git-commit" class="w-5 h-5 mr-3"></i> Linha do Tempo</a></li>
+                </ul>
+            </nav>
+            <footer class="mt-10 pt-6 border-t border-gray-200 text-center">
+                <p class="text-xs text-gray-500">Escola Municipal Liomar Gomes</p>
+                <p class="text-xs text-gray-500">Agrinho 2025</p>
+            </footer>
+        </aside>
+
+        <!-- Overlay para o menu mobile -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
+
+        <!-- Botão para abrir o menu em telas pequenas -->
+        <button id="menu-toggle" class="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow-md"><i data-feather="menu"></i></button>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-10">
+            <div id="content-container">
+                <!-- Seção Início -->
+                <section id="inicio" class="content-section active">
+                     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-4">Bem-vindos ao projeto "Festejando a conexão campo-cidade"!</h2>
+                        <p class="text-gray-600 mb-6 leading-relaxed">Este espaço é dedicado a compartilhar a experiência pedagógica desenvolvida para o Concurso Agrinho 2025, promovido pelo SENAR-PR. Nosso trabalho foi elaborado com os alunos do Ensino Fundamental I da Escola Municipal Liomar Gomes, utilizando como base os materiais de referência do Programa Agrinho.</p>
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 sm:p-6 rounded-r-lg">
+                            <h3 class="font-bold text-lg text-green-800 mb-2">Nosso Objetivo</h3>
+                            <p class="text-gray-700">O objetivo é apresentar as estratégias e os recursos que utilizamos para explorar com os estudantes a importante conexão que existe entre o campo e a cidade. Navegue pelo nosso menu para conhecer as atividades realizadas com cada turma, ver os registros de nossas visitas, se divertir com jogos educativos e acompanhar a evolução do nosso trabalho através da linha do tempo.</p>
+                        </div>
+                         <div class="mt-8 text-center">
+                            <img src="https://placehold.co/800x300/a7f3d0/14532d?text=Conexão+Campo-Cidade" alt="Ilustração da conexão campo-cidade" class="rounded-lg shadow-lg w-full max-w-3xl mx-auto">
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Seções das Turmas -->
+                <div id="turmas-container">
+                    <section id="turmas" class="content-section">
+                         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-4">Turmas Participantes</h2>
+                            <p class="text-gray-600 leading-relaxed">Nesta seção, você encontrará detalhes sobre as atividades desenvolvidas em cada turma participante do projeto na Escola Municipal Liomar Gomes. Use o submenu para navegar entre as turmas.</p>
+                        </div>
+                    </section>
+                    <!-- 1º ANO -->
+                    <section id="turma-1" class="content-section">
+                        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-6">1º Ano</h2>
+                            <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                                <div class="flex items-start sm:items-center gap-4">
+                                    <i data-feather="wind" class="w-8 h-8 text-green-600 flex-shrink-0"></i>
+                                    <h3 class="text-xl font-bold text-green-800">Projeto Abelha: Pequenas Polinizadoras</h3>
+                                </div>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                    O "Projeto Abelha" visa introduzir os alunos do primeiro ano ao fascinante mundo das abelhas e sua importância para o meio ambiente. Através de atividades lúdicas e educativas, os alunos aprenderão sobre a vida das abelhas, a produção de mel e a polinização.
+                                </p>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                    <strong class="font-semibold text-gray-800">Objetivos:</strong> Desenvolver a curiosidade sobre os insetos, promover a conscientização sobre a importância das abelhas e estimular a observação da natureza.
+                                </p>
+                                <a href="#" class="inline-block mt-4 font-semibold text-green-600 hover:text-green-800 transition-colors">Saiba mais sobre o projeto &rarr;</a>
+                            </div>
+                            <img src="https://placehold.co/700x400/dcfce7/166534?text=Foto+da+Turma+do+1º+Ano" alt="Foto da turma do 1º ano" class="w-full h-auto object-cover rounded-lg shadow-md mt-6">
+                        </div>
+                    </section>
+                    <!-- 2º ANO -->
+                     <section id="turma-2" class="content-section">
+                        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-6">2º Ano</h2>
+                            <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                                <div class="flex items-start sm:items-center gap-4">
+                                    <i data-feather="leaf" class="w-8 h-8 text-green-600 flex-shrink-0"></i>
+                                    <h3 class="text-xl font-bold text-green-800">Projeto da Turma: Guardiões das Sementes</h3>
+                                </div>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                    O projeto "Guardiões das Sementes" tem como objetivo ensinar os alunos sobre a importância das sementes, o ciclo de vida das plantas e a agricultura sustentável. Os alunos participarão do plantio, cuidado e colheita de uma pequena horta na escola.
+                                </p>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                    <strong class="font-semibold text-gray-800">Objetivos:</strong> Conscientizar sobre a origem dos alimentos, promover o contato com a natureza, desenvolver o senso de responsabilidade e trabalho em equipe.
+                                </p>
+                                <a href="#" class="inline-block mt-4 font-semibold text-green-600 hover:text-green-800 transition-colors">Saiba mais sobre o projeto &rarr;</a>
+                            </div>
+                            <img src="https://placehold.co/700x400/bbf7d0/166534?text=Foto+da+Turma+do+2º+Ano" alt="Foto da turma do 2º ano" class="w-full h-auto object-cover rounded-lg shadow-md mt-6">
+                        </div>
+                    </section>
+                    <!-- 3º ANO -->
+                     <section id="turma-3" class="content-section">
+                        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-6">3º Ano</h2>
+                            <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                                <div class="flex items-start sm:items-center gap-4">
+                                    <i data-feather="smile" class="w-8 h-8 text-green-600 flex-shrink-0"></i>
+                                    <h3 class="text-xl font-bold text-green-800">Projeto da Turma: Horta e Curiosidades</h3>
+                                </div>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                   O projeto "Horta e Curiosidades" convida os alunos do terceiro ano a explorar o mundo da jardinagem, aprendendo sobre o cultivo de alimentos e descobrindo fatos interessantes sobre as plantas e o solo. Eles participarão ativamente da criação e manutenção de uma horta escolar.
+                                </p>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                    <strong class="font-semibold text-gray-800">Objetivos:</strong> Incentivar uma alimentação saudável, ensinar sobre o ciclo de vida das plantas, desenvolver habilidades de trabalho em equipe e paciência, e despertar a curiosidade científica sobre a natureza.
+                                </p>
+                                <a href="#" class="inline-block mt-4 font-semibold text-green-600 hover:text-green-800 transition-colors">Saiba mais sobre o projeto &rarr;</a>
+                            </div>
+                            <img src="https://placehold.co/700x400/86efac/166534?text=Foto+da+Turma+do+3º+Ano" alt="Foto da turma do 3º ano" class="w-full h-auto object-cover rounded-lg shadow-md mt-6">
+                        </div>
+                    </section>
+                    <!-- 4º ANO -->
+                     <section id="turma-4" class="content-section">
+                        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-6">4º Ano</h2>
+                            <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                                <div class="flex items-start sm:items-center gap-4">
+                                    <i data-feather="cpu" class="w-8 h-8 text-green-600 flex-shrink-0"></i>
+                                    <h3 class="text-xl font-bold text-green-800">Projeto Tecnologia no Campo</h3>
+                                </div>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                   Explorando como a inovação está a transformar a agricultura. Os alunos pesquisarão sobre o uso de drones, GPS, tratores autónomos e outras tecnologias que aumentam a eficiência, reduzem o desperdício e promovem a sustentabilidade no campo.
+                                </p>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                    <strong class="font-semibold text-gray-800">Objetivos:</strong> Desmistificar a imagem do campo como um lugar "atrasado", entender o papel da tecnologia na produção de alimentos e despertar o interesse por carreiras inovadoras.
+                                </p>
+                                <a href="#" class="inline-block mt-4 font-semibold text-green-600 hover:text-green-800 transition-colors">Saiba mais sobre o projeto &rarr;</a>
+                            </div>
+                            <img src="https://placehold.co/700x400/4ade80/166534?text=Foto+da+Turma+do+4º+Ano" alt="Foto da turma do 4º ano" class="w-full h-auto object-cover rounded-lg shadow-md mt-6">
+                        </div>
+                    </section>
+                    <!-- 5º ANO -->
+                     <section id="turma-5" class="content-section">
+                        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-6">5º Ano</h2>
+                             <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                                <div class="flex items-start sm:items-center gap-4">
+                                    <i data-feather="globe" class="w-8 h-8 text-green-600 flex-shrink-0"></i>
+                                    <h3 class="text-xl font-bold text-green-800">Projeto Agroindústria e a Economia Local</h3>
+                                </div>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                   Neste projeto, os alunos do 5º ano mergulham no impacto económico da agroindústria na nossa região. Eles investigarão as principais culturas, as indústrias de processamento e como a produção agrícola local influencia os empregos e o desenvolvimento da cidade.
+                                </p>
+                                <p class="mt-4 text-gray-700 leading-relaxed">
+                                    <strong class="font-semibold text-gray-800">Objetivos:</strong> Compreender a relação entre matéria-prima e produto industrializado, analisar dados económicos básicos e valorizar a importância da economia rural para a comunidade.
+                                </p>
+                                <a href="#" class="inline-block mt-4 font-semibold text-green-600 hover:text-green-800 transition-colors">Saiba mais sobre o projeto &rarr;</a>
+                            </div>
+                            <img src="https://placehold.co/700x400/22c55e/166534?text=Foto+da+Turma+do+5º+Ano" alt="Foto da turma do 5º ano" class="w-full h-auto object-cover rounded-lg shadow-md mt-6">
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Seção Visitas -->
+                <section id="visitas" class="content-section">
+                    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-4">Registos das Nossas Visitas</h2>
+                        <p class="text-gray-600 mb-8 leading-relaxed">Aqui poderá visualizar os registos fotográficos e em vídeo das visitas e atividades externas que realizamos ao longo do projeto. Estes momentos foram fundamentais para conectar os estudantes com a realidade do campo e da cidade, enriquecendo a nossa experiência pedagógica.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                            <div class="group relative overflow-hidden rounded-lg shadow-lg"><img src="https://placehold.co/400x300/a7f3d0/14532d?text=Visita+à+Fazenda" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Visita à Fazenda"><div class="absolute inset-0 bg-black bg-opacity-40 flex items-end p-4"><p class="text-white font-semibold">Visita à Fazenda Modelo</p></div></div>
+                            <div class="group relative overflow-hidden rounded-lg shadow-lg"><img src="https://placehold.co/400x300/86efac/166534?text=Feira+do+Produtor" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Feira do Produtor"><div class="absolute inset-0 bg-black bg-opacity-40 flex items-end p-4"><p class="text-white font-semibold">Conversa na Feira do Produtor</p></div></div>
+                            <div class="group relative overflow-hidden rounded-lg shadow-lg"><img src="https://placehold.co/400x300/4ade80/166534?text=Horta+Comunitária" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Horta Comunitária"><div class="absolute inset-0 bg-black bg-opacity-40 flex items-end p-4"><p class="text-white font-semibold">Plantio na Horta Comunitária</p></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção Jogos -->
+                <section id="jogos" class="content-section">
+                     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-4">Jogos Educativos</h2>
+                        <p class="text-gray-600 mb-8 leading-relaxed">Aprender também é divertido! Nesta seção, disponibilizamos jogos educativos relacionados ao tema "Festejando a conexão campo-cidade".</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="bg-green-100 p-6 rounded-lg flex flex-col items-center text-center shadow-md hover:shadow-xl transition-shadow">
+                                <div class="bg-white p-4 rounded-full mb-4"><i data-feather="box" class="w-12 h-12 text-green-600"></i></div>
+                                <h3 class="text-xl font-semibold text-green-800 mb-2">Quiz: Campo ou Cidade?</h3>
+                                <p class="text-gray-600 mb-4">Teste os seus conhecimentos sobre os produtos e profissões de cada ambiente.</p>
+                                <button id="start-quiz-btn" class="mt-auto bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-colors">Jogar Agora</button>
+                            </div>
+                            <div class="bg-green-100 p-6 rounded-lg flex flex-col items-center text-center shadow-md hover:shadow-xl transition-shadow">
+                               <div class="bg-white p-4 rounded-full mb-4"><i data-feather="copy" class="w-12 h-12 text-green-600"></i></div>
+                                <h3 class="text-xl font-semibold text-green-800 mb-2">Jogo da Memória</h3>
+                                <p class="text-gray-600 mb-4">Encontre os pares de cartas que representam a conexão campo-cidade.</p>
+                                <button id="start-memory-btn" class="mt-auto bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-colors">Jogar Agora</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Seção Linha do Tempo -->
+                <section id="timeline" class="content-section">
+                    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-green-700 mb-4">Linha do Tempo do Projeto</h2>
+                        <p class="text-gray-600 mb-8 leading-relaxed">Acompanhe a trajetória do nosso projeto! A linha do tempo apresenta a sequência das principais etapas e atividades desenvolvidas entre 01 de maio e 11 de julho de 2025.</p>
+                        <div class="relative">
+                            <!-- Linha vertical -->
+                            <div class="absolute left-5 top-2 bottom-0 w-0.5 bg-green-200"></div>
+
+                            <!-- Item da timeline -->
+                            <div class="relative mb-8 pl-12">
+                                <div class="absolute left-5 top-2 -ml-2.5 w-5 h-5 bg-green-500 rounded-full border-4 border-white"></div>
+                                <p class="font-bold text-green-600">01 de Maio de 2025</p>
+                                <h4 class="font-semibold text-lg text-gray-800">Início do Projeto</h4>
+                                <p class="text-gray-600">Início oficial do projeto e apresentação do tema para as turmas.</p>
+                            </div>
+                            
+                            <!-- Item da timeline -->
+                            <div class="relative mb-8 pl-12">
+                                <div class="absolute left-5 top-2 -ml-2.5 w-5 h-5 bg-green-500 rounded-full border-4 border-white"></div>
+                                <p class="font-bold text-green-600">Maio de 2025</p>
+                                <h4 class="font-semibold text-lg text-gray-800">Pesquisas Iniciais</h4>
+                                <p class="text-gray-600">Rodas de conversa e pesquisas iniciais sobre a conexão entre o campo e a cidade.</p>
+                            </div>
+
+                             <!-- Item da timeline -->
+                            <div class="relative mb-8 pl-12">
+                                <div class="absolute left-5 top-2 -ml-2.5 w-5 h-5 bg-green-500 rounded-full border-4 border-white"></div>
+                                <p class="font-bold text-green-600">Junho de 2025</p>
+                                <h4 class="font-semibold text-lg text-gray-800">Atividades Práticas</h4>
+                                <p class="text-gray-600">Realização de visitas de campo e atividades práticas. Desenvolvimento dos trabalhos, maquetes e desenhos pelos alunos.</p>
+                            </div>
+
+                             <!-- Item da timeline -->
+                            <div class="relative mb-8 pl-12">
+                                <div class="absolute left-5 top-2 -ml-2.5 w-5 h-5 bg-green-500 rounded-full border-4 border-white"></div>
+                                <p class="font-bold text-green-600">Julho de 2025</p>
+                                <h4 class="font-semibold text-lg text-gray-800">Exposição Escolar</h4>
+                                <p class="text-gray-600">Organização de uma exposição na escola para apresentar os resultados do projeto à comunidade escolar.</p>
+                            </div>
+                            
+                             <!-- Item da timeline -->
+                            <div class="relative mb-8 pl-12">
+                                <div class="absolute left-5 top-2 -ml-2.5 w-5 h-5 bg-green-500 rounded-full border-4 border-white"></div>
+                                <p class="font-bold text-green-600">11 de Julho de 2025</p>
+                                <h4 class="font-semibold text-lg text-gray-800">Encerramento</h4>
+                                <p class="text-gray-600">Encerramento do projeto e confraternização entre os participantes.</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal do Jogo Quiz -->
+    <div id="quiz-modal" class="game-modal">
+        <div class="game-modal-content">
+            <i id="close-quiz-modal" data-feather="x" class="close-modal-btn w-6 h-6"></i>
+            <h3 class="text-xl sm:text-2xl font-bold text-green-800 mb-4 text-center">Quiz: Campo ou Cidade?</h3>
+            <div id="quiz-game-area" class="flex-grow overflow-y-auto">
+                <div id="quiz-question-container" class="text-center">
+                    <img id="quiz-image" src="" alt="Imagem do quiz" class="w-full h-48 sm:h-64 object-contain rounded-lg mb-4 bg-gray-100">
+                    <p id="quiz-feedback" class="h-6 mb-2 font-semibold"></p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+                        <button id="quiz-btn-campo" class="w-full sm:w-auto bg-yellow-500 text-white font-bold py-3 sm:py-2 px-8 rounded-full hover:bg-yellow-600 transition-colors">Campo</button>
+                        <button id="quiz-btn-cidade" class="w-full sm:w-auto bg-blue-500 text-white font-bold py-3 sm:py-2 px-8 rounded-full hover:bg-blue-600 transition-colors">Cidade</button>
+                    </div>
+                </div>
+                <div id="quiz-result-container" class="hidden text-center">
+                    <h4 class="text-xl font-bold mb-2">Fim de Jogo!</h4>
+                    <p id="quiz-final-score" class="text-lg mb-4"></p>
+                    <button id="quiz-restart-btn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-colors">Jogar Novamente</button>
+                </div>
+            </div>
+             <div class="mt-4 text-center text-sm sm:text-base text-gray-600 flex-shrink-0">
+                <span id="quiz-score">Pontuação: 0</span> | <span id="quiz-question-number">Pergunta: 1 / 5</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal do Jogo da Memória -->
+    <div id="memory-modal" class="game-modal">
+        <div class="game-modal-content">
+            <i id="close-memory-modal" data-feather="x" class="close-modal-btn w-6 h-6"></i>
+            <h3 class="text-xl sm:text-2xl font-bold text-green-800 mb-4 text-center flex-shrink-0">Jogo da Memória</h3>
+            <div id="memory-game-area" class="flex-grow">
+                <div id="memory-grid" class="grid grid-cols-4 gap-2 sm:gap-3"></div>
+                <div id="memory-win-message" class="hidden text-center mt-4">
+                    <h4 class="text-xl sm:text-2xl font-bold text-green-600">Parabéns, conseguiu!</h4>
+                </div>
+            </div>
+            <div class="mt-4 text-center flex-shrink-0">
+                 <button id="memory-restart-btn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-colors">Reiniciar Jogo</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializa os ícones Feather
+            feather.replace();
+
+            // --- LÓGICA DE NAVEGAÇÃO E RESPONSIVIDADE ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const turmasToggle = document.getElementById('turmas-toggle');
+            const turmasSubmenu = document.getElementById('turmas-submenu');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            const switchContent = (targetId) => {
+                contentSections.forEach(section => { section.classList.remove('active'); });
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    // Recarregar ícones quando uma nova seção é exibida
+                    feather.replace();
+                }
+            };
+            
+            const closeMobileMenu = () => {
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+            }
+
+            const updateActiveLink = (activeLink) => {
+                 document.querySelectorAll('#main-nav a').forEach(link => {
+                    link.classList.remove('active-link', 'bg-green-100', 'text-green-800', 'font-semibold');
+                 });
+                 activeLink.classList.add('active-link', 'bg-green-100', 'text-green-800', 'font-semibold');
+                 if (window.innerWidth < 1024) {
+                     closeMobileMenu();
+                 }
+            };
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('data-target');
+                    if(targetId) {
+                        switchContent(targetId);
+                        updateActiveLink(link);
+                        if(link.closest('.submenu')) {
+                            turmasSubmenu.classList.add('open');
+                            const icon = turmasToggle.querySelector('.feather-chevron-down');
+                            if (icon) icon.style.transform = 'rotate(180deg)';
+                        }
+                    }
+                });
+            });
+
+            turmasToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                turmasSubmenu.classList.toggle('open');
+                const icon = turmasToggle.querySelector('.feather-chevron-down');
+                if (icon) icon.style.transform = turmasSubmenu.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+                if(!document.querySelector('#turmas-submenu .active-link')) {
+                    switchContent('turmas');
+                    updateActiveLink(turmasToggle);
+                }
+            });
+            
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                sidebarOverlay.classList.toggle('hidden');
+            });
+            sidebarOverlay.addEventListener('click', closeMobileMenu);
+            
+            const initialLink = document.querySelector('.nav-link[data-target="inicio"]');
+            initialLink.classList.add('bg-green-100', 'text-green-800', 'font-semibold');
+
+            // --- LÓGICA DOS JOGOS ---
+            const quizModal = document.getElementById('quiz-modal');
+            const startQuizBtn = document.getElementById('start-quiz-btn');
+            const closeQuizBtn = document.getElementById('close-quiz-modal');
+            const quizImageEl = document.getElementById('quiz-image');
+            const feedbackEl = document.getElementById('quiz-feedback');
+            const scoreEl = document.getElementById('quiz-score');
+            const questionNumberEl = document.getElementById('quiz-question-number');
+            const campoBtn = document.getElementById('quiz-btn-campo');
+            const cidadeBtn = document.getElementById('quiz-btn-cidade');
+            const resultContainer = document.getElementById('quiz-result-container');
+            const questionContainer = document.getElementById('quiz-question-container');
+            const finalScoreEl = document.getElementById('quiz-final-score');
+            const restartQuizBtn = document.getElementById('quiz-restart-btn');
+
+            const questions = [
+                { image: 'https://placehold.co/600x400/facc15/333?text=Trator', answer: 'campo' },
+                { image: 'https://placehold.co/600x400/38bdf8/fff?text=Prédios', answer: 'cidade' },
+                { image: 'https://placehold.co/600x400/84cc16/333?text=Plantação', answer: 'campo' },
+                { image: 'https://placehold.co/600x400/94a3b8/fff?text=Metrô', answer: 'cidade' },
+                { image: 'https://placehold.co/600x400/fbbf24/333?text=Galinha', answer: 'campo' }
+            ];
+            let currentQuestionIndex = 0;
+            let score = 0;
+
+            function startQuiz() {
+                currentQuestionIndex = 0;
+                score = 0;
+                resultContainer.classList.add('hidden');
+                questionContainer.classList.remove('hidden');
+                showQuestion();
+                quizModal.style.display = 'flex';
+                feather.replace(); // Recarregar ícones no modal
+            }
+
+            function showQuestion() {
+                feedbackEl.textContent = '';
+                scoreEl.textContent = `Pontuação: ${score}`;
+                questionNumberEl.textContent = `Pergunta: ${currentQuestionIndex + 1} / ${questions.length}`;
+                quizImageEl.src = questions[currentQuestionIndex].image;
+                campoBtn.disabled = false;
+                cidadeBtn.disabled = false;
+            }
+
+            function checkAnswer(userAnswer) {
+                campoBtn.disabled = true;
+                cidadeBtn.disabled = true;
+                const correctAnswer = questions[currentQuestionIndex].answer;
+                if (userAnswer === correctAnswer) {
+                    score++;
+                    feedbackEl.textContent = 'Correto!';
+                    feedbackEl.classList.add('text-green-600');
+                    feedbackEl.classList.remove('text-red-600');
+                } else {
+                    feedbackEl.textContent = 'Errado!';
+                    feedbackEl.classList.add('text-red-600');
+                    feedbackEl.classList.remove('text-green-600');
+                }
+                scoreEl.textContent = `Pontuação: ${score}`;
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    if (currentQuestionIndex < questions.length) {
+                        showQuestion();
+                    } else {
+                        showResults();
+                    }
+                }, 1500);
+            }
+
+            function showResults() {
+                questionContainer.classList.add('hidden');
+                resultContainer.classList.remove('hidden');
+                finalScoreEl.textContent = `Sua pontuação final foi: ${score} de ${questions.length}!`;
+            }
+
+            startQuizBtn.addEventListener('click', startQuiz);
+            closeQuizBtn.addEventListener('click', () => quizModal.style.display = 'none');
+            restartQuizBtn.addEventListener('click', startQuiz);
+            campoBtn.addEventListener('click', () => checkAnswer('campo'));
+            cidadeBtn.addEventListener('click', () => checkAnswer('cidade'));
+
+            const memoryModal = document.getElementById('memory-modal');
+            const startMemoryBtn = document.getElementById('start-memory-btn');
+            const closeMemoryBtn = document.getElementById('close-memory-modal');
+            const memoryGrid = document.getElementById('memory-grid');
+            const memoryWinMessage = document.getElementById('memory-win-message');
+            const memoryRestartBtn = document.getElementById('memory-restart-btn');
+            const cardContent = ['🌽', '🏙️', '🐄', '🚗', '🚜', '🏢', '🌱', '🏭'];
+            let cards = [...cardContent, ...cardContent];
+            let flippedCards = [];
+            let matchedPairs = 0;
+            let lockBoard = false;
+
+            function shuffle(array) {
+                array.sort(() => Math.random() - 0.5);
+            }
+
+            function createBoard() {
+                shuffle(cards);
+                memoryGrid.innerHTML = '';
+                memoryWinMessage.classList.add('hidden');
+                matchedPairs = 0;
+                lockBoard = false;
+                cards.forEach(content => {
+                    const card = document.createElement('div');
+                    card.classList.add('memory-card');
+                    card.dataset.content = content;
+                    card.innerHTML = `<div class="card-face card-front"></div><div class="card-face card-back">${content}</div>`;
+                    card.addEventListener('click', flipCard);
+                    memoryGrid.appendChild(card);
+                });
+            }
+
+            function flipCard() {
+                if (lockBoard || this.classList.contains('matched') || this === flippedCards[0]) return;
+                this.classList.add('flipped');
+                flippedCards.push(this);
+                if (flippedCards.length === 2) checkForMatch();
+            }
+
+            function checkForMatch() {
+                lockBoard = true;
+                const [card1, card2] = flippedCards;
+                if (card1.dataset.content === card2.dataset.content) disableCards();
+                else unflipCards();
+            }
+            
+            function disableCards() {
+                flippedCards.forEach(card => {
+                    card.classList.add('matched');
+                    card.removeEventListener('click', flipCard);
+                });
+                matchedPairs++;
+                resetBoard();
+                if (matchedPairs === cardContent.length) {
+                    setTimeout(() => { memoryWinMessage.classList.remove('hidden'); }, 500);
+                }
+            }
+
+            function unflipCards() {
+                setTimeout(() => {
+                    flippedCards.forEach(card => card.classList.remove('flipped'));
+                    resetBoard();
+                }, 1000);
+            }
+            
+            function resetBoard() {
+                [flippedCards, lockBoard] = [[], false];
+            }
+            
+            startMemoryBtn.addEventListener('click', () => {
+                createBoard();
+                memoryModal.style.display = 'flex';
+                feather.replace(); // Recarregar ícones no modal
+            });
+            closeMemoryBtn.addEventListener('click', () => memoryModal.style.display = 'none');
+            memoryRestartBtn.addEventListener('click', createBoard);
+        });
+    </script>
+</body>
+</html>
